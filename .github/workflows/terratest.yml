@@ -25,13 +25,13 @@ jobs:
 
     - name: Run tflint
       run: |
-        tflint --config .tflint.hcl  # Optional: specify a custom configuration file
+        tflint 
 
   terratest:
     name: Terraform Test
     runs-on: ubuntu-latest
     environment: production
-    needs: lint  # This ensures linting job runs before terratest
+    needs: lint 
 
     defaults:
       run:
