@@ -1,16 +1,15 @@
 name: Terraform
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
+  workflow_dispatch:
 
 permissions:
+  id-token: write
   contents: read
 
 jobs:
-  terraform:
-    name: 'Terraform'
+  terratest:
+    name: Terraform
     runs-on: ubuntu-latest
     environment: production
 
@@ -24,12 +23,25 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+    - name: Setup Go
+      uses: actions/setup-go@v3
       with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        go-version: "1.22"
+    
+    # Install the latest version of Terraform CLI
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: "1.10.3"
 
+    - name: Cache Terraform
+      uses: actions/cache@v3
+      with:
+        path: ~/.terraform
+        key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+        restore-keys: |
+          ${{ runner.os }}-terraform-
+    
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       run: terraform init
@@ -38,12 +50,19 @@ jobs:
     - name: Terraform Format
       run: terraform fmt -check
 
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.ASSUME_ROLE }}
+        role-session-name: github-action-role
+        aws-region: ${{ secrets.REGION }}
+
     # Generates an execution plan for Terraform
     - name: Terraform Plan
       run: terraform plan -input=false
 
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
-    - name: Terraform Apply
+    - name: Terratest
       if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
-      run: terraform apply -auto-approve -input=false
+      run: go test -v ./test
