@@ -11,18 +11,33 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    name: Terraform Linting
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install tflint
+      run: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+    - name: Run tflint
+      run: |
+        tflint --config .tflint.hcl  # Optional: specify a custom configuration file
+
   terratest:
-    name: Terraform
+    name: Terraform Test
     runs-on: ubuntu-latest
     environment: production
+    needs: lint  # This ensures linting job runs before terratest
 
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
 
@@ -31,7 +46,6 @@ jobs:
       with:
         go-version: "1.22"
 
-    # Install the latest version of Terraform CLI
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
@@ -53,10 +67,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-terraform-
 
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      run: terraform fmt -check
-
     - name: Install dependencies
       run: |
         cd test
@@ -67,3 +77,42 @@ jobs:
       run: |
         cd test
         go test -v
+
+  deploy:
+    name: Terraform Deploy
+    runs-on: ubuntu-latest
+    needs: terratest
+    environment: production
+    if: success()  # Only run if Terratest passes
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.10.3"
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.ASSUME_ROLE }}
+          role-session-name: github-action-role
+          aws-region: ${{ secrets.REGION }}
+
+      - name: Cache Terraform
+        uses: actions/cache@v3
+        with:
+          path: ~/.terraform
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: |
+          terraform apply -auto-approve
