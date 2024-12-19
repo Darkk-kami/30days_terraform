@@ -40,6 +40,7 @@ module "instance" {
   providers = {
     aws = aws.east
   }
+  distro_version = var.distro_version
 
   instance_type = var.instance_type
 }
