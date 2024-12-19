@@ -63,4 +63,6 @@ jobs:
 
     - name: Terratest
       if: success() && (github.ref == 'refs/heads/main') && (github.event_name == 'push')
-      run: go test -v
+      run: |
+        cd test
+        go test -v
