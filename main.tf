@@ -3,6 +3,8 @@ module "vpc" {
   providers = {
     aws = aws.east
   }
+
+  tag = var.tag
 }
 
 module "tls" {
@@ -19,6 +21,8 @@ module "security_groups" {
   providers = {
     aws = aws.east
   }
+
+  tag = var.tag
 }
 
 module "secrets" {
@@ -36,4 +40,6 @@ module "instance" {
   providers = {
     aws = aws.east
   }
+
+  instance_type = var.instance_type
 }
