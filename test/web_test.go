@@ -1,11 +1,13 @@
 package test
 
 import (
-    "testing"
-    "time"
+	"fmt"
+	"testing"
+	"time"
 
-    "github.com/gruntwork-io/terratest/modules/http-helper"
-    "github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/gruntwork-io/terratest/modules/http-helper"
+	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWebServerResponse(t *testing.T) {
@@ -24,6 +26,9 @@ func TestWebServerResponse(t *testing.T) {
 
     // Fetch the public IP of the EC2 instance from Terraform outputs
     publicIp := terraform.Output(t, terraformOptions, "public_ip")
+    fmt.Println("Public IP:", publicIp)
+
+    assert.NotEmpty(t, publicIp)
 
     // Construct the URL to the web server
     url := "http://" + publicIp
