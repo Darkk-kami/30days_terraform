@@ -34,6 +34,13 @@ jobs:
       with:
         terraform_version: "1.10.3"
 
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.ASSUME_ROLE }}
+        role-session-name: github-action-role
+        aws-region: ${{ secrets.REGION }}
+
     - name: Cache Terraform
       uses: actions/cache@v3
       with:
@@ -41,13 +48,6 @@ jobs:
         key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
         restore-keys: |
           ${{ runner.os }}-terraform-
-
-            - name: Configure AWS credentials
-            uses: aws-actions/configure-aws-credentials@v4
-            with:
-              role-to-assume: ${{ secrets.ASSUME_ROLE }}
-              role-session-name: github-action-role
-              aws-region: ${{ secrets.REGION }}
     
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
