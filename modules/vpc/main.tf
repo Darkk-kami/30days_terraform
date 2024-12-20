@@ -2,6 +2,7 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
+      # configuration_aliases = [ aws.east ]
     }
   }
 }
@@ -10,14 +11,14 @@ resource "aws_vpc" "vpc" {
   cidr_block       = var.cidr
   instance_tenancy = "default"
   tags = {
-    Name = "${var.tag}-vpc"
+    Name = "vpc"
   }
 }
 
 resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "${var.tag}-igw"
+    Name = "igw"
   }
 }
 
@@ -30,7 +31,7 @@ resource "aws_subnet" "private_subnets" {
   availability_zone       = tolist(data.aws_availability_zones.available.names)[count.index]
   map_public_ip_on_launch = false
   tags = {
-    Name = "${var.tag}-private-subent-${count.index}"
+    Name = "private-subent-${count.index}"
   }
 }
 
@@ -41,7 +42,7 @@ resource "aws_subnet" "public_subnets" {
   availability_zone       = tolist(data.aws_availability_zones.available.names)[count.index]
   map_public_ip_on_launch = true
   tags = {
-    Name = "${var.tag}-public-subent-${count.index}"
+    Name = "$public-subent-${count.index}"
   }
 }
 
@@ -52,7 +53,7 @@ resource "aws_route_table" "public_route_table" {
     gateway_id = aws_internet_gateway.internet_gateway.id
   }
   tags = {
-    Name = "${var.tag}-public-route-table"
+    Name = "public-route-table"
   }
 }
 
@@ -66,7 +67,7 @@ resource "aws_route_table_association" "public_route_table_association" {
 resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "${var.tag}-private-route-table"
+    Name = "private-route-table"
   }
 }
 

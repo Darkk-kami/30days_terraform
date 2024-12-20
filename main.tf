@@ -1,10 +1,14 @@
 module "vpc" {
   source = "./modules/vpc"
-  providers = {
-    aws = aws.east
-  }
 
-  tag = var.tag
+  # providers = {
+  #   aws.east = aws.east
+  # }
+
+  tag = {
+    Name = var.vpc_name
+    environment = var.environment
+  }
 }
 
 module "tls" {
@@ -18,18 +22,16 @@ module "security_groups" {
   vpc_id                        = module.vpc.vpc_id
   inbound_ports                 = var.inbound_ports
   create_alb_ref_security_group = false
-  providers = {
-    aws = aws.east
-  }
+
+  # providers = {
+  #   aws.east = aws.east
+  # }
 
   tag = var.tag
 }
 
 module "secrets" {
   source = "./modules/secrets"
-  providers = {
-    aws = aws.east
-  }
 }
 
 module "instance" {
@@ -37,10 +39,15 @@ module "instance" {
   web_sg         = module.security_groups.web_security_group
   public_subnets = module.vpc.public_subnets
   secret_data    = module.secrets.secret_data
-  providers = {
-    aws = aws.east
-  }
-  distro_version = var.distro_version
 
+  distro_version = var.distro_version
   instance_type = var.instance_type
+  tags = {
+    Name = var.environment
+    Terraform = true
+  }
+
+  # providers = {
+  #   aws.east = aws.east
+  # }
 }

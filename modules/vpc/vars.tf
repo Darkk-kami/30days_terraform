@@ -1,6 +1,5 @@
 variable "tag" {
   description = "The tag prefix for naming resources"
-  type        = string
   default     = "my-project"
 }
 

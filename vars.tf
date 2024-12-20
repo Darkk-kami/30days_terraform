@@ -18,3 +18,18 @@ variable "instance_type" {
   type    = string
   default = "t2.micro"
 }
+
+
+variable "environment" {
+  type = string
+  description = "Infra environment. eg dev, prod, etc"
+  default = "test"
+}
+
+variable "vpc_name" {
+  type = string
+}
+
+variable "aws_region" {
+  default = "us-east-1"
+}

@@ -13,20 +13,24 @@ terraform {
       version = ">= 2.5.2"
     }
   }
-  backend "s3" {
-    bucket = "terraformstatebucketeks"
-    key    = "terraform/30days"
-    region = "us-east-1"
+
+  # backend "s3" {
+  #   bucket = "terraformstatebucketeks"
+  #   key    = "terraform/30days"
+  #   region = "us-east-1"
+  # }
+  # required_version = ">= 1.10.0"
+
+  backend "remote" {
+    organization = "Project-kami"
+
+    workspaces {
+      name = "kami-workspace"
+    }
   }
-  required_version = ">= 1.10.0"
 }
 
 provider "aws" {
-  region = "us-east-1"
-  alias  = "east"
-}
-
-provider "aws" {
-  region = "us-west-2"
-  alias  = "west"
+  region = var.aws_region
+  # alias = "east"
 }

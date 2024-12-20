@@ -42,3 +42,6 @@ variable "secret_data" {
 variable "instance_count" {
   default = 1
 }
+
+variable "tags" {
+}

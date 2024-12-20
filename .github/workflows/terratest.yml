@@ -30,7 +30,6 @@ jobs:
   terratest:
     name: Terraform Test
     runs-on: ubuntu-latest
-    environment: production
     needs: lint 
 
     defaults:
